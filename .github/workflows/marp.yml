@@ -1,0 +1,15 @@
+name: Marp to PDF
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Marp Build
+      uses: docker://marpteam/marp-cli:v1.0.0
+      with:
+        args: -I . -o ./ --allow-local-files
+    - uses: actions/upload-artifact@v2
+      with:
+        name: slides
+        path: ./*.pdf
