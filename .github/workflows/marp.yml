@@ -5,18 +5,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create Output Directory
-        run: mkdir -p output
+      - name: Setup Environment
+        run: |
+          echo "==== Creating output directory ===="
+          mkdir -p output
+          chmod -R 777 output
+          ls -ld output
+          ls -la output
+      - name: Debug Markdown Directory
+        run: |
+          echo "==== Listing markdown directory ===="
+          ls -ld markdown
+          ls -la markdown
       - name: Marp Build
         run: |
+          echo "==== Starting Marp Conversion ===="
           for file in markdown/*.md; do
+            echo "Processing $file"
             filename=$(basename "$file" .md)
-            docker run --rm -v "$(pwd):/workspace" marpteam/marp-cli:latest "/workspace/$file" -o "/workspace/output/${filename}.pdf" --allow-local-files
+            docker run --rm -v "$(pwd):/workspace" marpteam/marp-cli:latest \
+              "/workspace/$file" -o "/workspace/output/${filename}.pdf" --allow-local-files || {
+                echo "Error occurred during Marp conversion for $file"
+                exit 1
+              }
           done
+      - name: Debug Output Directory
+        run: |
+          echo "==== Listing output directory ===="
+          ls -ld output
+          ls -la output
       - name: Upload PDFs
         uses: actions/upload-artifact@v4
         with:
           name: slides
           path: output/*.pdf
-
-
